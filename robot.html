@@ -26,6 +26,12 @@
     #ar-prompt > img { animation: mover 4s ease-in-out infinite; width: 80px; }
     @keyframes mover { 0%,100% { transform: translateX(-40px); } 50% { transform: translateX(40px); } }
 
+    /* Botón de música */
+    #btn-musica { position: absolute; top: 14px; right: 14px; background: #1D4286; color: #fff; border: none;
+                  border-radius: 24px; padding: 10px 16px; font-size: 15px; font-weight: bold;
+                  box-shadow: 0 3px 10px rgba(0,0,0,.25); z-index: 10; }
+    #btn-musica.sonando { background: #039047; }
+
     p { margin: 10px 16px; font-size: 14px; color: #4A4A4A; }
     .credito { font-size: 11px; color: #999; }
   </style>
@@ -33,9 +39,11 @@
 <body>
   <header>Comfamiliar Nariño · Robot en Realidad Aumentada</header>
 
-  <!-- El modelo se carga desde el repositorio oficial de muestras de Khronos (no se copia a este repositorio) -->
+  <!-- Robot v3: 30 cm, camisa blanca, piernas grises y logo en el pecho. robot-v3.glb (web y Android) y robot-v3.usdz (iPhone) -->
   <model-viewer
-    src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/BrainStem/glTF-Binary/BrainStem.glb"
+    src="robot-v3.glb"
+    ios-src="robot-v3.usdz"
+    ar-scale="fixed"
     alt="Robot BrainStem bailando"
     ar
     ar-modes="webxr scene-viewer quick-look"
@@ -47,13 +55,28 @@
     touch-action="pan-y">
     <div class="progress-bar hide" slot="progress-bar"><div class="update-bar"></div></div>
     <button slot="ar-button" id="ar-button">📱 Ver en tu espacio</button>
+    <button id="btn-musica" type="button">🎵 Música</button>
     <div id="ar-prompt"><img src="https://modelviewer.dev/shared-assets/icons/hand.png" alt="Mueve el celular"></div>
   </model-viewer>
 
-  <p>Toca el botón naranja y apunta al piso para ver al robot bailar en tu entorno.</p>
-  <p class="credito">Modelo de demostración: BrainStem, muestras oficiales glTF de Khronos Group.</p>
+  <!-- Música: reemplaza musica.mp3 por otra canción libre de derechos con el mismo nombre -->
+  <audio id="musica" src="musica.mp3" loop preload="auto"></audio>
+
+  <p>Toca 🎵 para escuchar la música y el botón naranja para ver al robot bailar en tu entorno.</p>
+  <p class="credito">Modelo de demostración interna: BrainStem (© 2017 Smith Micro Software), muestras glTF de Khronos Group. Música: ritmo original libre de derechos. v4</p>
 
   <script>
+    // Música: los navegadores exigen un toque del usuario para reproducir sonido
+    const musica = document.getElementById("musica");
+    const btn = document.getElementById("btn-musica");
+    function sonar(encender) {
+      if (encender) { musica.play().catch(() => {}); btn.textContent = "🔊 Pausar"; btn.classList.add("sonando"); }
+      else { musica.pause(); btn.textContent = "🎵 Música"; btn.classList.remove("sonando"); }
+    }
+    btn.addEventListener("click", (e) => { e.stopPropagation(); sonar(musica.paused); });
+    // Al entrar en realidad aumentada, la música arranca sola (el toque en el botón naranja cuenta como permiso)
+    document.getElementById("ar-button").addEventListener("click", () => sonar(true));
+
     // Mueve la barra de carga mientras descarga el modelo
     const visor = document.querySelector("model-viewer");
     visor.addEventListener("progress", (e) => {
