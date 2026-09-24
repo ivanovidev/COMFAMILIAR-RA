@@ -1,2 +1,0 @@
-# COMFAMILIAR-RA
-Realidad Aumentada
